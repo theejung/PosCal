@@ -1,6 +1,14 @@
 # PosCal
 Jung et al's ACL 2020 paper titled "Posterior Calibrated Training on Sentence Classification Tasks"
 
+## Requirements
+
+## Data you need
+
+## Running BERT + PosCal training on RTE in GLUE (Wang et al., 2018)
+
+## Running BERT + PosCal training on Stanford's Politeness in xSLUE (Kang et al., 2019)
+
 ## Note:
  * The code will be ready soon. Please stay tuned.
 
