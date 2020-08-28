@@ -1,7 +1,7 @@
 This repository contains codes of Jung et al's ACL 2020 paper titled "Posterior Calibrated Training on Sentence Classification Tasks"
 
 ## Requirements
- - transformers (v 2.2.0)
+Please run ```pip install -r requirement.txt``` to install python dependencies.
 
 ## Running the BERT classifier with PosCal training on ShortRomance datsaet in [xSLUE](https://arxiv.org/abs/1911.03663) (Kang et al., 2019)
 Please refer to the xslue [resposiotry](https://github.com/dykang/xslue) to download the datasets.
