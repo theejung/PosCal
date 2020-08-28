@@ -2,15 +2,17 @@
 Jung et al's ACL 2020 paper titled "Posterior Calibrated Training on Sentence Classification Tasks"
 
 ## Requirements
+transformers (v 2.2.0)
 
-## Data you need
-
-## Running BERT + PosCal training on RTE in GLUE (Wang et al., 2018)
-
-## Running BERT + PosCal training on Stanford's Politeness in xSLUE (Kang et al., 2019)
-
-## Note:
- * The code will be ready soon. Please stay tuned.
+## Running BERT + PosCal training on ShortRomance datsaet in xSLUE (Kang et al., 2019)
+python classify_bert.py \
+    --model_type bert \
+    --model_name_or_path bert-base-uncased \
+    --task_name ShortRomance \
+    --do_train \
+    --poscal_train \
+    --data_dir $PATH/to/the/data \
+    --output_dir $PATH/to/the/output
 
 ## Citation
     @inproceedings{jung20acl_poscal,
