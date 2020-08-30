@@ -65,6 +65,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
         loss, logits = outputs[:2]
 
     """
+
     def __init__(self, config):
         super(BertForSequenceClassification, self).__init__(config)
         self.num_labels = config.num_labels
@@ -75,14 +76,22 @@ class BertForSequenceClassification(BertPreTrainedModel):
 
         self.init_weights()
 
-    def logits_from_current_epochs(self, input_ids, attention_mask=None,
-            token_type_ids=None,position_ids=None, head_mask=None):
+    def logits_from_current_epochs(
+        self,
+        input_ids,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+    ):
 
-        outputs = self.bert(input_ids,
-                            attention_mask=attention_mask,
-                            token_type_ids=token_type_ids,
-                            position_ids=position_ids,
-                            head_mask=head_mask)
+        outputs = self.bert(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+        )
 
         pooled_output = outputs[1]
 
@@ -91,26 +100,41 @@ class BertForSequenceClassification(BertPreTrainedModel):
 
         return logits
 
+    def forward(
+        self,
+        input_ids,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        labels=None,
+        empprob_ref=None,
+        bins=None,
+        calloss_yn=None,
+        calloss_type=None,
+        calloss_lambda=None,
+        caltrain_start_epochs=None,
+        curr_epoch=None,
+        eval_only=None,
+        device=None,
+    ):
 
-    def forward(self, input_ids, attention_mask=None, token_type_ids=None,
-                position_ids=None, head_mask=None, labels=None,
-                empprob_ref=None,bins=None,
-                calloss_yn = None, calloss_type=None, calloss_lambda=None,
-                caltrain_start_epochs = None, curr_epoch = None,
-                eval_only = None, device = None):
-
-        outputs = self.bert(input_ids,
-                            attention_mask=attention_mask,
-                            token_type_ids=token_type_ids,
-                            position_ids=position_ids,
-                            head_mask=head_mask)
+        outputs = self.bert(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+        )
 
         pooled_output = outputs[1]
 
         pooled_output = self.dropout(pooled_output)
         logits = self.classifier(pooled_output)
 
-        outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
+        outputs = (logits,) + outputs[
+            2:
+        ]  # add hidden states and attention if they are here
         if labels is not None:
             if self.num_labels == 1:
                 #  We are doing regression
@@ -127,40 +151,37 @@ class BertForSequenceClassification(BertPreTrainedModel):
                 return outputs
 
             # Calibration Loss!
-            #if calloss_yn:
-                #Initial loss set-up
-            loss_mle, loss_cal = torch.zeros(1),torch.zeros(1)
-            #if curr_epochs > caltrain_start_epoch:
+            # if calloss_yn:
+            #     Initial loss set-up
+            loss_mle, loss_cal = torch.zeros(1), torch.zeros(1)
+            # if curr_epochs > caltrain_start_epoch:
             if np.sum(empprob_ref) > 0:
-                pred = torch.nn.functional.softmax(logits,dim=1)
+                pred = torch.nn.functional.softmax(logits, dim=1)
                 empprob = np.zeros(pred.shape)
                 pred_to_empprob_map = np.digitize(pred.cpu().detach().numpy(), bins) - 1
-                for sample,empmaps in enumerate(pred_to_empprob_map):
+                for sample, empmaps in enumerate(pred_to_empprob_map):
                     for clas, empprob_idx in enumerate(empmaps):
                         try:
                             empprob[sample][clas] = empprob_ref[empprob_idx][clas]
                         except IndexError:
-                            empprob[sample][clas] = empprob_ref[empprob_idx-1][clas]
+                            empprob[sample][clas] = empprob_ref[empprob_idx - 1][clas]
 
                 empprob = torch.from_numpy(empprob).float().to(device)
-                if 'MSE' in calloss_type:
+                if "MSE" in calloss_type:
                     loss_cal_fct = MSELoss()
-                elif calloss_type == 'KL':
-                    loss_cal_fct = KLDivLoss(reduction='batchmean')
+                elif calloss_type == "KL":
+                    loss_cal_fct = KLDivLoss(reduction="batchmean")
                     pred = torch.log(pred)
 
                 # Update original loss containing calibration loss
-                loss_cal = loss_cal_fct(pred.view(-1),empprob.view(-1))
+                loss_cal = loss_cal_fct(pred.view(-1), empprob.view(-1))
                 if calloss_type == "RMSE":
                     loss_cal = torch.sqrt(loss_cal)
 
-                #import pdb;pdb.set_trace();
                 loss_cal = calloss_lambda * loss_cal
                 loss_mle += loss
                 if calloss_yn:
                     loss += loss_cal
             outputs = ([loss, loss_mle, loss_cal],) + outputs
 
-        return outputs  # (loss), logits, (hidden_states), (attentions)
-
-
+        return outputs
