@@ -427,24 +427,19 @@ def train(args, train_dataset, model, tokenizer, num_labels, valid_dataset=None)
                     p_binums = np.digitize(p_hats, bins) - 1
                     p_trues = np.eye(num_labels)[labels.cpu()]
 
-                    try:
-                        for sample in np.dstack((p_binums, p_trues, p_hats)):
-                            for col_idx, subsample in enumerate(sample):
-                                row_idx = int(subsample[0])
-                                indiv_true = subsample[1]
-                                indiv_p_hat = subsample[2]
-                                try:
-                                    freq_p_hats[row_idx][col_idx] += 1
-                                    freq_p_trues[row_idx][col_idx] += indiv_true
-                                    acc_p_hats[row_idx][col_idx] += indiv_p_hat
-                                except IndexError:
-                                    freq_p_hats[row_idx - 1][col_idx] += 1
-                                    freq_p_trues[row_idx - 1][col_idx] += indiv_true
-                                    acc_p_hats[row_idx - 1][col_idx] += indiv_p_hats
-                    except ValueError:
-                        import pdb
-
-                        pdb.set_trace()
+                    for sample in np.dstack((p_binums, p_trues, p_hats)):
+                        for col_idx, subsample in enumerate(sample):
+                            row_idx = int(subsample[0])
+                            indiv_true = subsample[1]
+                            indiv_p_hat = subsample[2]
+                            try:
+                                freq_p_hats[row_idx][col_idx] += 1
+                                freq_p_trues[row_idx][col_idx] += indiv_true
+                                acc_p_hats[row_idx][col_idx] += indiv_p_hat
+                            except IndexError:
+                                freq_p_hats[row_idx - 1][col_idx] += 1
+                                freq_p_trues[row_idx - 1][col_idx] += indiv_true
+                                acc_p_hats[row_idx - 1][col_idx] += indiv_p_hats
 
                 p_emps = freq_p_trues / freq_p_hats
                 p_emps[np.isnan(p_emps)] = 0
